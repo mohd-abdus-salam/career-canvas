@@ -18,67 +18,88 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          display_name: string | null
           full_name: string | null
           id: string
+          last_visited_page: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          display_name?: string | null
           full_name?: string | null
           id?: string
+          last_visited_page?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          display_name?: string | null
           full_name?: string | null
           id?: string
+          last_visited_page?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
-      resume_generations: {
+      reading_history: {
         Row: {
-          company_name: string | null
-          created_at: string
-          generated_resume: string
+          content_type: string
           id: string
-          job_description: string
-          job_title: string
-          matched_skills: string[] | null
-          missing_skills: string[] | null
-          original_resume_text: string | null
-          skill_match_score: number | null
+          section_id: string
+          section_title: string | null
+          user_id: string
+          visited_at: string
+        }
+        Insert: {
+          content_type: string
+          id?: string
+          section_id: string
+          section_title?: string | null
+          user_id: string
+          visited_at?: string
+        }
+        Update: {
+          content_type?: string
+          id?: string
+          section_id?: string
+          section_title?: string | null
+          user_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
+      reading_progress: {
+        Row: {
+          content_type: string
+          created_at: string
+          id: string
+          last_read_at: string
+          position: string | null
+          section_id: string
           user_id: string
         }
         Insert: {
-          company_name?: string | null
+          content_type: string
           created_at?: string
-          generated_resume: string
           id?: string
-          job_description: string
-          job_title: string
-          matched_skills?: string[] | null
-          missing_skills?: string[] | null
-          original_resume_text?: string | null
-          skill_match_score?: number | null
+          last_read_at?: string
+          position?: string | null
+          section_id: string
           user_id: string
         }
         Update: {
-          company_name?: string | null
+          content_type?: string
           created_at?: string
-          generated_resume?: string
           id?: string
-          job_description?: string
-          job_title?: string
-          matched_skills?: string[] | null
-          missing_skills?: string[] | null
-          original_resume_text?: string | null
-          skill_match_score?: number | null
+          last_read_at?: string
+          position?: string | null
+          section_id?: string
           user_id?: string
         }
         Relationships: []

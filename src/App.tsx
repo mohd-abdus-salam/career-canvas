@@ -4,8 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import HowItWorks from "./pages/HowItWorks";
-import Generator from "./pages/Generator";
+import Umrah from "./pages/Umrah";
+import Hajj from "./pages/Hajj";
+import Quran from "./pages/Quran";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -21,8 +22,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/generator" element={<Generator />} />
+          <Route path="/umrah" element={<Umrah />} />
+          <Route path="/hajj" element={<Hajj />} />
+          <Route path="/quran" element={<Quran />} />
           <Route path="/about" element={<About />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />

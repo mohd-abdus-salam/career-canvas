@@ -1,9 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/home/Hero";
-import Features from "@/components/home/Features";
-import Stats from "@/components/home/Stats";
-import CTA from "@/components/home/CTA";
+import Quote from "@/components/home/Quote";
 
 const Index = () => {
   return (
@@ -11,9 +9,7 @@ const Index = () => {
       <Navbar />
       <main>
         <Hero />
-        <Stats />
-        <Features />
-        <CTA />
+        <Quote />
       </main>
       <Footer />
     </div>
