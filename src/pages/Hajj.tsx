@@ -6,179 +6,165 @@ import ChapterList from "@/components/reading/ChapterList";
 import ReadingContent from "@/components/reading/ReadingContent";
 import { supabase } from "@/integrations/supabase/client";
 
-// Hajj sections content
+// Hajj sections content from the PDF guide
 const hajjSections = [
   {
-    id: "preparation",
-    title: "Preparation",
-    arabicTitle: "التحضير",
+    id: "meaning",
+    title: "Meaning & Conditions",
+    arabicTitle: "معنى وشروط",
     content: `
-      <h2>Preparing for Hajj</h2>
-      <p>Hajj is one of the five pillars of Islam and a profound spiritual journey. Proper preparation is essential for a meaningful experience.</p>
+      <h2>Literary and Educative Meanings</h2>
+      <p>The meaning of Hajj in some inhabited places per Sharh is to glorify Holy Makkah for performing certain rituals with an intention to glorify Holy Makkah.</p>
       
-      <h3>Spiritual Preparation</h3>
+      <p>The practical aspect with reverence and praises to Holy Kaaba is to start the journey, wearing of Ihraam, recitation of Talbiyah, Tawaf or circulating of Holy Kaaba, performing Saiee, staying in Mina, Arafath, Muzdalifah, doing Rami of three Jamrat, sacrificing an animal, shaving or doing Tawafe-Ziarat, and Tawaf-e-Vida.</p>
+      
+      <h2>Conditions and Pre-requisites for Doing Hajj</h2>
+      <p>There are five conditions:</p>
       <ul>
-        <li>Seek sincere repentance (Tawbah) and purify your intentions</li>
-        <li>Learn the rituals of Hajj thoroughly</li>
-        <li>Settle all debts and seek forgiveness from others</li>
-        <li>Write a will if necessary</li>
-        <li>Increase in worship and dua</li>
+        <li><strong>a)</strong> He should be a Muslim</li>
+        <li><strong>b)</strong> He must be sane and adult</li>
+        <li><strong>c)</strong> He must have full control over his mental faculties</li>
+        <li><strong>d)</strong> He should be freed from slavery</li>
+        <li><strong>e)</strong> He must be financially sound to bear all of his expenses for performing Hajj and coming back. He should provide finances adequately for his dependents during his absence and until his return back to his home country</li>
+        <li><strong>f)</strong> Lastly the path from his residence to Holy MAKKAH should be peaceful</li>
       </ul>
       
-      <h3>Physical Preparation</h3>
-      <ul>
-        <li>Ensure good physical health - consult your doctor</li>
-        <li>Practice walking long distances</li>
-        <li>Get all required vaccinations</li>
-        <li>Pack comfortable, modest clothing</li>
-      </ul>
+      <h2>Obligatory and When to Perform Hajj</h2>
+      <p>It is obligatory to perform HAJJ one time in the lifetime of a person. Once you fulfill the conditions of Hajj, then it becomes obligatory to do as early as possible. Any delay might create hindrances to perform Hajj with regard to health, financial conditions or any other important aspect of worldly life.</p>
       
-      <h3>Essential Documents</h3>
-      <ul>
-        <li>Valid passport with sufficient validity</li>
-        <li>Hajj visa</li>
-        <li>Vaccination certificates</li>
-        <li>Travel insurance</li>
-        <li>Copies of all important documents</li>
-      </ul>
-      
-      <h3>What to Pack</h3>
-      <ul>
-        <li>Ihram garments (two for men)</li>
-        <li>Comfortable walking shoes and sandals</li>
-        <li>Prayer rug</li>
-        <li>Quran and dua books</li>
-        <li>Personal medications</li>
-        <li>Sunscreen and umbrella</li>
-      </ul>
+      <h3>Period</h3>
+      <p>HAJJ is performed during the months of Shawwal, Ziqaadah and first ten days of Dhul Hijja (as per the Islamic calendar).</p>
     `,
   },
   {
-    id: "day1-8dhul",
-    title: "8th Dhul Hijjah",
+    id: "types",
+    title: "Types of Hajj",
+    arabicTitle: "أنواع الحج",
+    content: `
+      <h2>Types of Hajj</h2>
+      <p>Hajj is done in 3 types:</p>
+      
+      <h3>1. HAJJ-E-IFRAD</h3>
+      <p>Performing Hajj only without combining Umrah.</p>
+      
+      <h3>2. HAJJ-E-TAMATTU</h3>
+      <p>Ihraam is first worn with the intention of Umrah and then it is taken off after completion of Umrah. Ihraam is again worn on the day of Tarviyyah i.e., 8th of Dhul Hijja with the intention of HAJJ.</p>
+      
+      <h3>3. HAJJ-E-QIRAAN</h3>
+      <p>Single Ihraam is worn with the Niyyat (intention) of performing both Hajj and Umrah.</p>
+      
+      <h2>Important Notes</h2>
+      <ol>
+        <li>If the pilgrim is Mufrid or Qarin then first immediately after entering Masjid-ul-Haram, he will complete Tawaf-e-Qudoom of Holy Kaaba and then complete Saiee.</li>
+        <li>If the pilgrim is Mutamatti who is bounded by the rules of Makkah then he can wear Ihraam from Masjid-ul-Haram and can proceed straight to Mina for Hajj.</li>
+        <li>Pilgrims of India, Pakistan and Bangladesh generally perform Hajj-e-Tamattu i.e. first Ihraam is worn with the Niyyat (intention) of performing Umrah and is taken off after completing Umrah.</li>
+      </ol>
+    `,
+  },
+  {
+    id: "day1",
+    title: "8th Dhul Hijja - Mina",
     arabicTitle: "يوم التروية",
     content: `
-      <h2>Yawm al-Tarwiyah (Day of Watering)</h2>
-      <p>The 8th of Dhul Hijjah marks the official beginning of Hajj. Pilgrims prepare to leave for Mina.</p>
+      <h2>First Day of Hajj - Yaumul Tarviyyah</h2>
+      <p>Our beloved Prophet Muhammad ﷺ during the course of Hajjatul Vida on 8th Dhul Hijja performed Namaz-e-Fajr in Makkah Mukkaramah in congregation. After Fajr prayers Prophet Muhammad ﷺ proceeded to Mina which is approximately 4 miles away from Makkah.</p>
       
-      <h3>Morning Rituals</h3>
-      <ol>
-        <li>Perform ghusl (ritual bath)</li>
-        <li>Put on Ihram garments</li>
-        <li>Pray two rak'ahs of Sunnah</li>
-        <li>Make intention for Hajj: "Labbayk Allahumma Hajj"</li>
-        <li>Begin reciting the Talbiyah</li>
-      </ol>
+      <h3>Wearing Ihram for Hajj</h3>
+      <p>Pilgrims who have done the Umrah of Hajj-e-Tamattu should wear Ihraam after taking bath with the Niyyat (intention) of Hajj at the place wherever they are staying.</p>
       
-      <h3>Journey to Mina</h3>
-      <p>After entering Ihram, proceed to Mina:</p>
-      <ul>
-        <li>Continue reciting Talbiyah throughout the journey</li>
-        <li>Arrive in Mina before Dhuhr if possible</li>
-        <li>Pray Dhuhr, Asr, Maghrib, Isha (shortened but not combined)</li>
-        <li>Spend the night in Mina in worship</li>
-      </ul>
+      <p>With the upper cloth of Ihraam cover the head and offer 2 Rakat Nafil Namaz. In the first Rakat after Surah Fatiha recite a surah and in second Rakat after Surah Fatiha recite another surah.</p>
       
-      <h3>Night in Mina</h3>
-      <p>The night should be spent in:</p>
-      <ul>
-        <li>Prayer and dhikr</li>
-        <li>Recitation of Quran</li>
-        <li>Reflection and contemplation</li>
-        <li>Rest for the days ahead</li>
-      </ul>
+      <p>Immediately after the completion of Namaz remove the Ihraam cloth from the head and say loudly the intention of Hajj:</p>
+      <blockquote>
+        "O Allah! I intend to perform Hajj, make it easy for me and accept it from me."
+      </blockquote>
+      
+      <p>After this recite loudly three times Talbiyah by male pilgrims. Female pilgrims should recite in low voice.</p>
+      
+      <h3>Words of Talbiyah</h3>
+      <blockquote>
+        لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ
+      </blockquote>
+      <p>"Here I am, O Allah! Here I am! Here I am, there is no one who is Your partner, Here I am! Surely, all praise and blessings are Yours and Dominion. You are without companion."</p>
+      
+      <h2>Stay in Mina</h2>
+      <p>Immediately after reaching Mina proceed to designated tent. Here the pilgrim will be staying night and day of 8th Dhul Hijja and night of 9th Dhul Hijja.</p>
+      
+      <p>If all six prayers (Fajr to Isha and Fajr of 9th) are offered by Jamaat (in congregation) Pilgrim will get benefited by 27 times of the Salat.</p>
+      
+      <p><strong>Note:</strong> Aafaqui (Hajis coming from outside Makkah) will offer prayers of Mina/Arafath/Muzdalifa in Qasar mode. While staying in tent Hajis should rigorously recite Holy Quran, Durood and various Wazaif.</p>
     `,
   },
   {
-    id: "day2-9dhul",
-    title: "9th Dhul Hijjah - Arafah",
+    id: "day2",
+    title: "9th Dhul Hijja - Arafat",
     arabicTitle: "يوم عرفة",
     content: `
-      <h2>The Day of Arafah</h2>
-      <p>This is the most important day of Hajj. Standing at Arafah is the pillar of Hajj - without it, the Hajj is invalid.</p>
+      <h2>Actions of the Day of Arafa</h2>
+      <p>9th Dhul Hijjah (Second Day of Hajj)</p>
       
-      <h3>The Prophet ﷺ said:</h3>
+      <p>After Fajr prayers, Pilgrims will have breakfast and get ready to proceed to Arafat. From the tent, Pilgrim will carry most necessary items from his luggage. Vehicles of Muallimeen (Guides) will arrive near the tent by 8-9 in the morning. Pilgrims will ride the vehicles and Insha Allah reach Arafat before Zuhar prayers.</p>
+      
+      <p>In the course of Journey Pilgrims will frequently recite Talbiyah, Durood-e-Shareef and Fourth Kalima:</p>
       <blockquote>
-        الحَجُّ عَرَفَة
+        لَا إِلٰهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ، بِيَدِهِ الْخَيْرُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ
       </blockquote>
-      <p>"Hajj is Arafah."</p>
+      <p>"There is no God besides Allah. He is One, He has no partner. His is the Kingdom and for Him is all Praise. He gives Life and causes death. In His hand is all good. And He has power over everything."</p>
       
-      <h3>Journey to Arafah</h3>
-      <ol>
-        <li>Pray Fajr in Mina</li>
-        <li>After sunrise, proceed to Arafah</li>
-        <li>Continue reciting Talbiyah</li>
-        <li>Arrive before Dhuhr</li>
-      </ol>
+      <h2>Orders of Wuquf-e-Arafat</h2>
+      <p><strong>Wuquf (Staying in) Wuquf-e-Arafat is an important Rukn, that is Farz of Hajj.</strong> If for any reason it is missed then Haj is not completed. It cannot be compensated by any Fidya etc.</p>
       
-      <h3>Wuquf (Standing) at Arafah</h3>
-      <p>This is from Dhuhr until Maghrib:</p>
-      <ul>
-        <li>Pray Dhuhr and Asr combined and shortened</li>
-        <li>Face the Qiblah and make abundant dua</li>
-        <li>Raise your hands and beseech Allah</li>
-        <li>Ask for forgiveness repeatedly</li>
-        <li>Recite the Talbiyah frequently</li>
-      </ul>
+      <p>The interval of the Wuquf in Arafat begins after the Zawaal of the sun (in the afternoon) and ends on the morning of the 10th of Dhul Hijja (Eid day).</p>
       
-      <h3>Best Dua</h3>
+      <h3>During Wuquf</h3>
+      <p>Pilgrim is in HIS presence, so entreat HIM, plead, beg and pray for the welfare of All Muslims. Ask for His Forgiveness and Mercy. This is the special occasion for acceptance of your prayers. Send Durood and Salaam to Prophet Muhammad ﷺ.</p>
+      
+      <h3>Prophet Muhammad's ﷺ Invocations on the Day of Arafat</h3>
+      <p>In the narration from Imam Tirmizi that the Prophet Muhammad ﷺ said that the best invocation is of the day of Arafat:</p>
       <blockquote>
-        لَا إِلٰهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ
+        لَا إِلٰهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ
       </blockquote>
-      
-      <h3>After Sunset</h3>
-      <ul>
-        <li>Proceed to Muzdalifah calmly</li>
-        <li>Do not pray Maghrib until reaching Muzdalifah</li>
-        <li>Continue making dua and Talbiyah</li>
-      </ul>
+      <p>"There is no God besides Allah. He is one. He has no partner. His is the Kingdom and for Him is all praise. And He has power over everything."</p>
     `,
   },
   {
-    id: "day3-10dhul",
-    title: "10th Dhul Hijjah - Eid",
+    id: "day3",
+    title: "10th Dhul Hijja - Eid",
     arabicTitle: "يوم النحر",
     content: `
-      <h2>Yawm al-Nahr (Day of Sacrifice)</h2>
-      <p>This is the busiest day of Hajj with multiple rituals to be performed.</p>
+      <h2>Proceeding from Arafat to Muzdalifa</h2>
+      <p>After sunset, proceed from Arafat to Muzdalifa. During journey to Muzdalifa engage in Durood and Talbiyah. When you reach Muzdalifa, pray Maghrib and Isha prayers combined.</p>
       
-      <h3>Night at Muzdalifah</h3>
-      <ul>
-        <li>Pray Maghrib and Isha combined upon arrival</li>
-        <li>Collect 7 pebbles for Jamarat (or 70 for all days)</li>
-        <li>Rest and prepare for the next day</li>
-        <li>Pray Fajr at its earliest time</li>
-        <li>Make dua until just before sunrise</li>
-      </ul>
+      <h2>Proceeding from Muzdalifa to Mina</h2>
+      <p>After Fajr prayers, journey from Muzdalifa is undertaken a short while before the sunrise to Mina. Delaying the departure after sunrise is contrary to Sunna. Offer Fajr Prayers quite early in darkness in comparison to normal times.</p>
       
-      <h3>Rituals of the 10th</h3>
-      <p>Perform these in order (preferably):</p>
-      <ol>
-        <li><strong>Stoning Jamrat al-Aqabah:</strong> Throw 7 pebbles saying "Allahu Akbar" with each</li>
-        <li><strong>Sacrifice:</strong> Offer your sacrificial animal (Hady)</li>
-        <li><strong>Halq/Taqsir:</strong> Shave or trim the hair</li>
-        <li><strong>Tawaf al-Ifadah:</strong> Perform Tawaf of the Kaaba</li>
-        <li><strong>Sa'i:</strong> Walk between Safa and Marwa</li>
-      </ol>
+      <h2>Actions of Yawmun Nahr (Day of Sacrifice)</h2>
+      <p>10th Dhul-Hijja is the third day of Hajj. Activities for today:</p>
       
-      <h3>Exiting Ihram</h3>
-      <p>After the first three rituals (stoning, sacrifice, haircut):</p>
-      <ul>
-        <li>You enter partial release (Tahallul Asghar)</li>
-        <li>All Ihram restrictions are lifted except intimacy</li>
-        <li>After Tawaf and Sa'i, you are in complete release</li>
-      </ul>
+      <h3>(a) Wuquf-e-Muzdalifa (First Wajib)</h3>
+      <p>In Muzdalifa after Fajr prayers for some minutes is the Wuquf. With due humility, politeness, plead for Istaghfar (to beg pardon of Allah) and ask for forgiveness for our misdeeds:</p>
+      <blockquote>
+        أَسْتَغْفِرُ اللهَ رَبِّي مِنْ كُلِّ ذَنْبٍ وَأَتُوبُ إِلَيْهِ
+      </blockquote>
+      <p>"I seek forgiveness from Almighty Allah for my sins."</p>
       
-      <h3>Return to Mina</h3>
-      <p>Return to Mina to spend the nights of Tashreeq (11th, 12th, 13th).</p>
+      <h3>(b) Rami of Jamrat ul Aqaba (Second Wajib)</h3>
+      <p>Departing from Muzdalifa to proceed to Mina. Before throwing or casting pebbles at Shaitan, Talbiyah has to be stopped. Today Pilgrim will perform Rami of Jamrat-ul-Aqaba only, by casting/throwing seven pebbles.</p>
+      <p>While throwing each pebble, Pilgrim has to say "Allahu Akbar". Then move on to the right side, facing Qibla start Takbeer, Istaghfar, and ending with Durood.</p>
+      
+      <h3>(c) Sacrifice (Qurbani) - Third Wajib</h3>
+      <p>After Rami, arrange for the sacrifice. Only after getting the confirmation about the Sacrifice (Qurbani) then the pilgrim can get the head shaved.</p>
+      
+      <h3>(d) Halq/Taqsir (Shaving Head) - Fourth Wajib</h3>
+      <p>After sacrifice, shave the head (for men) or trim hair. Then change into regular clothes (preferably new clothes).</p>
     `,
   },
   {
-    id: "days-tashreeq",
+    id: "tashreeq",
     title: "Days of Tashreeq",
     arabicTitle: "أيام التشريق",
     content: `
-      <h2>The Days of Tashreeq (11th, 12th, 13th Dhul Hijjah)</h2>
+      <h2>Days of Tashreeq (11th, 12th, 13th Dhul Hijjah)</h2>
       <p>These are the days of eating, drinking, and remembrance of Allah.</p>
       
       <h3>Daily Ritual - Stoning the Jamarat</h3>
@@ -189,66 +175,21 @@ const hajjSections = [
         <li><strong>Jamrat al-Aqabah (largest):</strong> 7 pebbles, no dua after</li>
       </ol>
       
-      <h3>Best Time for Stoning</h3>
-      <ul>
-        <li>After Dhuhr until sunset is the preferred time</li>
-        <li>From sunrise is permissible if needed</li>
-        <li>After sunset until Fajr for the elderly and weak</li>
-      </ul>
+      <h3>Tasbih, Tahleel, Takbir</h3>
+      <blockquote>
+        سُبْحَانَ اللهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلٰهَ إِلَّا اللهُ، وَاللهُ أَكْبَرُ
+      </blockquote>
+      <p>"All Glory is to Allah! All Praise is to Allah! There is none worthy of Worship but Allah! Allah is the Greatest."</p>
       
       <h3>Option to Leave Early</h3>
-      <p>On the 12th, you may leave Mina before sunset:</p>
-      <ul>
-        <li>This is called "taking the early option"</li>
-        <li>Must leave before sunset</li>
-        <li>If sunset catches you in Mina, stay for the 13th</li>
-      </ul>
+      <p>On the 12th, you may leave Mina before sunset. This is called "taking the early option." Must leave before sunset. If sunset catches you in Mina, stay for the 13th.</p>
       
-      <h3>Staying the 13th (Recommended)</h3>
-      <ul>
-        <li>More reward for staying all three days</li>
-        <li>Stone the Jamarat on the 13th</li>
-        <li>Then proceed to Makkah</li>
-      </ul>
-    `,
-  },
-  {
-    id: "farewell",
-    title: "Farewell Tawaf",
-    arabicTitle: "طواف الوداع",
-    content: `
       <h2>Tawaf al-Wada (Farewell Tawaf)</h2>
       <p>This is the final rite of Hajj, performed just before leaving Makkah.</p>
-      
-      <h3>Obligation</h3>
       <blockquote>
         لَا يَنْفِرَنَّ أَحَدٌ حَتَّى يَكُونَ آخِرُ عَهْدِهِ بِالْبَيْتِ
       </blockquote>
-      <p>"No one should depart until their last act is at the House (Kaaba)."</p>
-      <p>— Prophet Muhammad ﷺ</p>
-      
-      <h3>How to Perform</h3>
-      <ol>
-        <li>Perform Tawaf of 7 circuits around the Kaaba</li>
-        <li>Pray 2 rak'ahs behind Maqam Ibrahim</li>
-        <li>Drink Zamzam water</li>
-        <li>Make your final duas at the Multazam</li>
-      </ol>
-      
-      <h3>Exemptions</h3>
-      <p>Farewell Tawaf is waived for:</p>
-      <ul>
-        <li>Women in menstruation or post-natal bleeding</li>
-        <li>Those with severe illness</li>
-      </ul>
-      
-      <h3>After Farewell Tawaf</h3>
-      <ul>
-        <li>Leave the Masjid immediately after</li>
-        <li>Walk out backwards (optional, showing respect)</li>
-        <li>Make dua for acceptance of your Hajj</li>
-        <li>Ask Allah to return you again</li>
-      </ul>
+      <p>"No one should depart until their last act is at the House (Kaaba)." — Prophet Muhammad ﷺ</p>
       
       <h3>Completion</h3>
       <p>Alhamdulillah! Your Hajj is complete. May Allah accept it from you.</p>
@@ -340,10 +281,10 @@ const Hajj = () => {
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-8 pt-4">
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-foreground mb-3">
               Hajj Guide
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-lg md:text-xl text-muted-foreground">
               Complete step-by-step guidance for performing the sacred pilgrimage
             </p>
           </div>

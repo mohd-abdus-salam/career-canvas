@@ -142,7 +142,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased text-lg;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -177,9 +177,10 @@
 
   /* Reading panel styles */
   .reading-panel {
-    @apply bg-card rounded-xl p-6 shadow-md;
+    @apply bg-card rounded-xl p-6 md:p-8 shadow-md;
     font-family: var(--font-display);
-    line-height: 1.8;
+    line-height: 2;
+    font-size: 1.125rem;
   }
 
   /* Arabic text styling */
