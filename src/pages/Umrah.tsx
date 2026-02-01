@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import TranslationPanel from "@/components/reading/TranslationPanel";
+import LanguageSelector from "@/components/reading/LanguageSelector";
 import ChapterList from "@/components/reading/ChapterList";
-import ReadingContent from "@/components/reading/ReadingContent";
+import TranslatedContent from "@/components/reading/TranslatedContent";
 import { supabase } from "@/integrations/supabase/client";
+import kaabaView from "@/assets/kaaba-view.png";
+import kaabaNight from "@/assets/kaaba-night.png";
 
 // Umrah chapters content from the PDF guide
 const umrahChapters = [
@@ -232,17 +234,22 @@ const Umrah = () => {
   }, []);
 
   useEffect(() => {
-    // Save reading progress
     if (user) {
       saveProgress();
     }
   }, [selectedChapter, user]);
 
+  useEffect(() => {
+    // Reset translation when chapter changes
+    if (selectedLanguage !== "en") {
+      handleTranslate(selectedLanguage);
+    }
+  }, [selectedChapter]);
+
   const saveProgress = async () => {
     if (!user) return;
 
     try {
-      // Upsert progress
       await supabase.from("reading_progress").upsert({
         user_id: user.id,
         content_type: "umrah",
@@ -252,7 +259,6 @@ const Umrah = () => {
         onConflict: "user_id,content_type,section_id",
       });
 
-      // Add to history
       await supabase.from("reading_history").insert({
         user_id: user.id,
         content_type: "umrah",
@@ -275,7 +281,6 @@ const Umrah = () => {
     setSelectedLanguage(language);
 
     try {
-      // Strip HTML tags for translation
       const textContent = selectedChapter.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
       const response = await supabase.functions.invoke("translate-content", {
@@ -300,14 +305,24 @@ const Umrah = () => {
       <Navbar />
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4">
-          {/* Header */}
-          <div className="text-center mb-8 pt-4">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-foreground mb-3">
-              Umrah Guide
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground">
-              Complete step-by-step guidance for performing Umrah
-            </p>
+          {/* Header with Image */}
+          <div className="relative mb-8 pt-4">
+            <div className="relative rounded-2xl overflow-hidden h-48 md:h-64 lg:h-80">
+              <img 
+                src={kaabaNight} 
+                alt="Kaaba at night" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-foreground mb-2">
+                  Umrah Guide
+                </h1>
+                <p className="text-xl md:text-2xl text-muted-foreground">
+                  Complete step-by-step guidance for performing Umrah
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Chapter Navigation */}
@@ -322,22 +337,32 @@ const Umrah = () => {
 
           {/* Content Area */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-            {/* Translation Panel */}
-            <TranslationPanel
-              content={translatedContent}
+            {/* Language Selector - Left Side */}
+            <LanguageSelector
               selectedLanguage={selectedLanguage}
               onLanguageChange={handleTranslate}
-              isLoading={isTranslating}
             />
 
-            {/* Main Content */}
+            {/* Main Content - Right Side (shows translation here) */}
             <div className="lg:col-span-2">
-              <ReadingContent
+              <TranslatedContent
                 title={selectedChapter.title}
                 arabicTitle={selectedChapter.arabicTitle}
-                content={selectedChapter.content}
+                originalContent={selectedChapter.content}
+                translatedContent={translatedContent}
+                selectedLanguage={selectedLanguage}
+                isTranslating={isTranslating}
               />
             </div>
+          </div>
+
+          {/* Bottom Image */}
+          <div className="mt-12 rounded-2xl overflow-hidden">
+            <img 
+              src={kaabaView} 
+              alt="View of Kaaba" 
+              className="w-full h-48 md:h-64 object-cover opacity-80"
+            />
           </div>
         </div>
       </main>
