@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, Compass, Moon } from "lucide-react";
+import { ArrowRight, BookOpen, Compass, Moon, BarChart3 } from "lucide-react";
 
 const Hero = () => {
   return (
@@ -60,7 +60,7 @@ const Hero = () => {
 
           {/* Navigation Cards */}
           <div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in" 
+            className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in" 
             style={{ animationDelay: "0.4s" }}
           >
             <Link to="/umrah" className="nav-card group">
@@ -86,6 +86,32 @@ const Hero = () => {
                 Read the Holy Quran and track your reading progress.
               </p>
             </Link>
+
+            <div className="nav-card group flex flex-col">
+              <BarChart3 className="w-10 h-10 text-primary mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-display text-xl font-semibold text-foreground mb-2">Tracking</h3>
+              <p className="text-muted-foreground text-sm flex-1">
+                Keep track of your daily reading and spiritual progress.
+              </p>
+              <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
+                <Link to="/auth?mode=signup" className="w-full">
+                  <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
+                    Sign Up
+                  </Button>
+                </Link>
+                <Link to="/auth" className="w-full">
+                  <Button size="sm" variant="outline" className="w-full">
+                    Login
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Small image gallery below */}
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+            <img src="/home%20page.jpg" alt="Kaaba crowd" className="w-full h-64 object-cover rounded-lg shadow-lg" />
+            <img src="/umrah.jpg" alt="View of Kaaba" className="w-full h-64 object-cover rounded-lg shadow-lg" />
           </div>
         </div>
       </div>

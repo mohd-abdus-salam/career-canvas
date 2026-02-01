@@ -58,15 +58,34 @@ const Footer = () => {
             <h4 className="font-display text-lg font-semibold text-foreground mb-4">
               Connect
             </h4>
-            <div className="flex gap-3">
-              <a
-                href="https://www.linkedin.com/in/abdus-salam-mohammad-212468234/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all duration-300 glow-hover"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://www.linkedin.com/in/abdus-salam-mohammad-212468234/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all duration-300 glow-hover"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <Link to="/profile/abdus-salam-mohammad-212468234" className="text-sm text-muted-foreground hover:text-primary">
+                  Abdus Salam
+                </Link>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://www.linkedin.com/in/syedtajuddin7/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all duration-300 glow-hover"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <Link to="/profile/syedtajuddin7" className="text-sm text-muted-foreground hover:text-primary">
+                  Syed Tajuddin
+                </Link>
+              </div>
             </div>
           </div>
         </div>

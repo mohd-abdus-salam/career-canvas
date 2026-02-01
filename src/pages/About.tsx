@@ -6,8 +6,15 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4">
+      <main
+        className="pt-24 pb-16"
+        style={{
+          backgroundImage: "url('/about.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="container mx-auto px-4 bg-black/30 backdrop-blur-sm rounded-xl py-8">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="text-center mb-12">
@@ -28,41 +35,54 @@ const About = () => {
                 </p>
 
                 <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8">
-                  It is thanks to Almighty Allah, I express my gratitude to the Lord of the Worlds. 
+                  It is thanks to Almighty Allah that I express my gratitude to the Lord of the Worlds. 
                   Many, many thanks to Allah's kindness and benevolence that has given me an opportunity 
-                  to perform HAJJ. Based on this experience, Almighty Allah has bestowed upon me the 
+                  to perform HAJJ. Based on this blessed experience, Almighty Allah has bestowed upon me the 
                   ability to write and publish this booklet for the guidance of prospective HAJIS.
                 </p>
 
                 <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8">
-                  It is my insignificant effort to Allah, I pray that Allah accepts this as a tool 
-                  for gratification. Aameen.
+                  It is my humble effort in the way of Allah, and I pray that Allah accepts this as a means 
+                  of reward and gratification. Aameen.
                 </p>
 
                 <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8">
-                  My parents requested that all HAJIS before reading this booklet should read books 
+                  My parents requested that all HAJIS, before reading this booklet, should also read books 
                   which cover the topics of the pilgrimage exhaustively.
                 </p>
+
+                <div className="bg-accent/30 rounded-xl p-6 md:p-8 my-10">
+                  <h3 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-4">
+                    Acknowledgement of Translation
+                  </h3>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    The English translation of this booklet was completed with the sincere efforts of my father, 
+                    <span className="highlight-name"> M.A. Moiz</span>, and my uncle, 
+                    <span className="highlight-name"> M.A. Haq</span>, whose dedication and devotion made it possible 
+                    to present this work to a wider audience. Their contribution in translating and refining the 
+                    content is deeply appreciated and will always remain a source of pride for our family.
+                  </p>
+                </div>
 
                 <div className="bg-accent/30 rounded-xl p-6 md:p-8 my-10">
                   <h3 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-4">
                     Publication History
                   </h3>
                   <ul className="space-y-3 text-lg text-muted-foreground">
-                    <li><strong>1st Edition:</strong> 2000 - M.A. Shakoor</li>
-                    <li><strong>2nd Edition (Urdu/English):</strong> 2009 - Completed</li>
-                    <li><strong>3rd Edition (Urdu/English):</strong> 2013 - Near complete</li>
+                    <li><strong>1st Edition:</strong> 2000 – <span className="highlight-name">M.A. Shakoor</span></li>
+                    <li><strong>2nd Edition (Urdu/English):</strong> 2009 – Completed</li>
+                    <li><strong>3rd Edition (Urdu/English):</strong> 2013 – Near complete</li>
                   </ul>
                 </div>
 
                 <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8">
-                  The work was done in Urdu, and the English translation could not be published 
+                  The original work was done in Urdu, and the English translation could not be published 
                   before the remaining work was completed. Unfortunately, he passed away on 25-01-2007.
                 </p>
 
                 <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8">
                   After the 2nd edition was published, the response from pilgrims was overwhelming. 
-                  The third edition is now published with necessary revision in Urdu/English.
+                  The third edition is now published with necessary revisions in Urdu and English.
                 </p>
 
                 <blockquote className="border-l-4 border-primary pl-6 py-4 my-10 bg-accent/30 rounded-r-lg">
@@ -82,7 +102,7 @@ const About = () => {
                     In Loving Memory
                   </h3>
                   <p className="text-lg text-muted-foreground mb-2">
-                    <strong>Late M. A. SHAKOOR</strong>
+                    <strong>Late <span className="highlight-name">M. A. SHAKOOR</span></strong>
                   </p>
                   <p className="text-muted-foreground">
                     Audit Officer (Retd), A.G.'s Office, Hyderabad

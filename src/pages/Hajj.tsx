@@ -4,7 +4,10 @@ import Footer from "@/components/layout/Footer";
 import TranslationPanel from "@/components/reading/TranslationPanel";
 import ChapterList from "@/components/reading/ChapterList";
 import ReadingContent from "@/components/reading/ReadingContent";
+import LanguageSelector from "@/components/reading/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { BookMarked } from "lucide-react";
 
 // Hajj sections content from the PDF guide
 const hajjSections = [
@@ -300,21 +303,57 @@ const Hajj = () => {
           />
 
           {/* Content Area */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-            {/* Translation Panel */}
-            <TranslationPanel
-              content={translatedContent}
-              selectedLanguage={selectedLanguage}
-              onLanguageChange={handleTranslate}
-              isLoading={isTranslating}
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
+            {/* Left Sidebar - Language & Shortlinks */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Language Selector */}
+              <LanguageSelector
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={handleTranslate}
+              />
 
-            {/* Main Content */}
+              {/* Shortlinks */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <BookMarked className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold text-lg">Quick Links</h3>
+                </div>
+                <div className="space-y-2">
+                  {hajjSections.map((section) => (
+                    <Button
+                      key={section.id}
+                      variant={selectedSection.id === section.id ? "default" : "outline"}
+                      className="w-full justify-start h-auto py-2 px-3 text-left"
+                      onClick={() => setSelectedSection(section)}
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{section.title}</div>
+                        <div className="text-xs opacity-75 text-right">
+                          {section.arabicTitle}
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Center Content */}
             <div className="lg:col-span-2">
               <ReadingContent
                 title={selectedSection.title}
                 arabicTitle={selectedSection.arabicTitle}
                 content={selectedSection.content}
+              />
+            </div>
+
+            {/* Right Sidebar - Translation Panel */}
+            <div className="lg:col-span-1">
+              <TranslationPanel
+                content={translatedContent}
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={handleTranslate}
+                isLoading={isTranslating}
               />
             </div>
           </div>
