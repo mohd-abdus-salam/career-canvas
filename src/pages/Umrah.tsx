@@ -66,7 +66,8 @@ Male pilgrims to recite Talbiyah 3 times loudly and female pilgrims to recite Ta
     id: 7,
     title: "Words of Talbiyah",
     arabic: "لَبَّيْكَ اللّهُمَّ لَبَّيْكَ، لَبَّيْكَ لاَ شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لاَ شَرِيكَ لَكَ",
-    translation: `"Here I am ! O Allah ! Here I am ! Here I am there is no one who is Your Partner, Here I am ! surely, all praise and blessings are Yours, and Dominion. You are without Companion"`
+    translation: `"Here I am ! O Allah ! Here I am ! Here I am there is no one who is Your Partner, Here I am ! surely, all praise and blessings are Yours, and Dominion. You are without Companion"`,
+    content: "Talbiyah should be recited in a loud voice",
   },
   {
     id: 8,
