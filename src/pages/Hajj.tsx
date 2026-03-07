@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronLeft, ChevronRight, Languages } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { saveReadingProgress } from "@/lib/progress";
 
 interface Section {
   id: number;
@@ -266,6 +267,17 @@ const Hajj = () => {
   const currentSection = hajjGuide[currentPage];
   const isFirstPage = currentPage === 0;
   const isLastPage = currentPage === hajjGuide.length - 1;
+
+  // Save Reading Progress when page changes
+  useEffect(() => {
+    if (currentSection) {
+      saveReadingProgress({
+        contentType: "hajj",
+        sectionId: currentSection.id.toString(),
+        sectionTitle: currentSection.title,
+      });
+    }
+  }, [currentPage, currentSection]);
 
   // Get translated content or fallback to original
   const displayContent = selectedLanguage === 'en'

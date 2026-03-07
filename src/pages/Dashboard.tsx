@@ -5,7 +5,9 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Compass, Moon, Clock, ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { auth, db } from "@/integrations/firebase/config";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 
 interface ReadingProgress {
@@ -32,51 +34,61 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
         navigate("/auth");
         return;
       }
-      setUser(session.user);
-      await fetchUserData(session.user.id);
-    };
+      setUser(currentUser);
+      await fetchUserData(currentUser.uid);
+    });
 
-    checkAuth();
+    return () => unsubscribe();
   }, [navigate]);
 
   const fetchUserData = async (userId: string) => {
     try {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      
-      if (profileData) {
-        setProfile(profileData);
+      const profileRef = doc(db, "profiles", userId);
+      const progressQuery = query(
+        collection(db, "reading_progress"),
+        where("user_id", "==", userId)
+      );
+      const historyQuery = query(
+        collection(db, "reading_history"),
+        where("user_id", "==", userId)
+      );
+
+      // Fetch all data concurrently
+      const [profileSnap, progressSnapshot, historySnapshot] = await Promise.all([
+        getDoc(profileRef),
+        getDocs(progressQuery),
+        getDocs(historyQuery)
+      ]);
+
+      if (profileSnap.exists()) {
+        setProfile(profileSnap.data());
       }
 
-      const { data: progressData } = await supabase
-        .from("reading_progress")
-        .select("*")
-        .eq("user_id", userId)
-        .order("last_read_at", { ascending: false });
+      const progressData = progressSnapshot.docs.map(doc => doc.data() as ReadingProgress);
+      progressData.sort((a, b) => new Date(b.last_read_at).getTime() - new Date(a.last_read_at).getTime());
+      setProgress(progressData);
 
-      if (progressData) {
-        setProgress(progressData);
+      const historyData = historySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ReadingHistory));
+      historyData.sort((a, b) => new Date(b.visited_at).getTime() - new Date(a.visited_at).getTime());
+
+      // Filter out duplicate history items for the same section to keep the list clean
+      const uniqueHistory = [];
+      const seenSections = new Set();
+      for (const item of historyData) {
+        const sectionKey = `${item.content_type}_${item.section_id}`;
+        if (!seenSections.has(sectionKey)) {
+          seenSections.add(sectionKey);
+          uniqueHistory.push(item);
+        }
       }
 
-      const { data: historyData } = await supabase
-        .from("reading_history")
-        .select("*")
-        .eq("user_id", userId)
-        .order("visited_at", { ascending: false })
-        .limit(10);
+      setHistory(uniqueHistory.slice(0, 10));
 
-      if (historyData) {
-        setHistory(historyData);
-      }
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {

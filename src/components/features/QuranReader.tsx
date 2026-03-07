@@ -11,6 +11,7 @@ import {
 } from "@/lib/quran-api";
 import { cn } from "@/lib/utils";
 import { FaPlay, FaPause, FaSpinner, FaBookOpen, FaTimes } from "react-icons/fa";
+import { saveReadingProgress } from "@/lib/progress";
 
 export function QuranReader() {
     // Data State
@@ -73,14 +74,25 @@ export function QuranReader() {
         loadContent();
     }, [activeChapterId]);
 
-    // Sync Active Verse Key with Index & Scroll
+    // Sync Active Verse Key with Index & Scroll, and Save Progress
     useEffect(() => {
         if (verses.length > 0 && verses[currentVerseIndex]) {
             const key = verses[currentVerseIndex].verse_key;
             setActiveVerseKey(key);
             scrollToVerse(key);
+
+            // Save reading progress when verse changes
+            const currentChapterData = chapters.find(c => c.id === activeChapterId);
+            if (currentChapterData) {
+                saveReadingProgress({
+                    contentType: "quran",
+                    sectionId: activeChapterId.toString(),
+                    sectionTitle: currentChapterData.name_simple,
+                    position: key.split(':')[1] // Save Ayah number as position
+                });
+            }
         }
-    }, [currentVerseIndex, verses]);
+    }, [currentVerseIndex, verses, activeChapterId, chapters]);
 
     const scrollToVerse = (key: string) => {
         const el = verseRefs.current.get(key);

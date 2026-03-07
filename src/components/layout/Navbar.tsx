@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Moon, Sun, LogOut, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/integrations/firebase/config";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
@@ -21,17 +22,11 @@ const Navbar = () => {
       document.documentElement.classList.add("dark");
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   const toggleTheme = () => {
@@ -46,19 +41,19 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive",
-      });
-    } else {
+    try {
+      await signOut(auth);
       toast({
         title: "Ma'a Salama",
         description: "You have been signed out successfully",
       });
       navigate("/");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
     }
   };
 
@@ -78,9 +73,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo-1.svg" alt="NoorPath Logo" className="w-10 h-10" />
+            <img src="/logo-1.svg" alt="The Ummah Lab Logo" className="w-10 h-10" />
             <span className="text-xl font-display font-bold text-foreground">
-              NoorPath
+              The Ummah Lab
             </span>
           </Link>
 
@@ -90,11 +85,10 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm font-medium transition-all duration-300 hover:text-primary glow-hover px-3 py-2 rounded-lg ${
-                  isActive(link.path)
-                    ? "text-primary bg-accent"
-                    : "text-muted-foreground"
-                }`}
+                className={`text-sm font-medium transition-all duration-300 hover:text-primary glow-hover px-3 py-2 rounded-lg ${isActive(link.path)
+                  ? "text-primary bg-accent"
+                  : "text-muted-foreground"
+                  }`}
               >
                 {link.name}
               </Link>
@@ -173,11 +167,10 @@ const Navbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`text-sm font-medium px-4 py-3 rounded-lg transition-colors ${
-                    isActive(link.path)
-                      ? "text-primary bg-accent"
-                      : "text-muted-foreground hover:text-primary hover:bg-accent"
-                  }`}
+                  className={`text-sm font-medium px-4 py-3 rounded-lg transition-colors ${isActive(link.path)
+                    ? "text-primary bg-accent"
+                    : "text-muted-foreground hover:text-primary hover:bg-accent"
+                    }`}
                 >
                   {link.name}
                 </Link>

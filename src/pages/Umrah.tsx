@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronLeft, ChevronRight, Languages } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { saveReadingProgress } from "@/lib/progress";
 
 interface Section {
   id: number;
@@ -337,7 +338,7 @@ const languages = [
 const Umrah = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [translatedContent, setTranslatedContent] = useState<{[key: string]: {[key: number]: any}}>({});
+  const [translatedContent, setTranslatedContent] = useState<{ [key: string]: { [key: number]: any } }>({});
   const [isTranslating, setIsTranslating] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
@@ -345,9 +346,20 @@ const Umrah = () => {
   const isFirstPage = currentPage === 0;
   const isLastPage = currentPage === umrahGuide.length - 1;
 
+  // Save Reading Progress when page changes
+  useEffect(() => {
+    if (currentSection) {
+      saveReadingProgress({
+        contentType: "umrah",
+        sectionId: currentSection.id.toString(),
+        sectionTitle: currentSection.title,
+      });
+    }
+  }, [currentPage, currentSection]);
+
   // Get translated content or fallback to original
-  const displayContent = selectedLanguage === 'en' 
-    ? currentSection 
+  const displayContent = selectedLanguage === 'en'
+    ? currentSection
     : translatedContent[selectedLanguage]?.[currentPage] || currentSection;
 
   // Translate content when language or page changes
@@ -359,7 +371,7 @@ const Umrah = () => {
     const translateContent = async () => {
       // Check if already translated for this specific language and page
       if (translatedContent[selectedLanguage]?.[currentPage]) return;
-      
+
       setIsTranslating(true);
       try {
         const textToTranslate = [
@@ -372,11 +384,11 @@ const Umrah = () => {
         const response = await fetch(
           `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${selectedLanguage}&dt=t&q=${encodeURIComponent(textToTranslate)}`
         );
-        
+
         const data = await response.json();
         const translated = data[0].map((item: any) => item[0]).join('');
         const parts = translated.split('\n---\n');
-        
+
         setTranslatedContent(prev => ({
           ...prev,
           [selectedLanguage]: {
@@ -466,7 +478,7 @@ const Umrah = () => {
               <div className="text-sm text-muted-foreground">
                 Section {currentPage + 1} of {umrahGuide.length}
               </div>
-              
+
               {/* Language Selector */}
               <div className="relative">
                 <button
@@ -536,7 +548,7 @@ const Umrah = () => {
                 </AnimatePresence>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 flex-1 max-w-md">
               <div className="flex-1">
                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
@@ -604,7 +616,7 @@ const Umrah = () => {
                   <div className="relative mt-8 p-8 md:p-12 rounded-2xl bg-gradient-to-br from-primary/5 via-primary/3 to-transparent border-2 border-primary/20 overflow-hidden">
                     {/* Decorative Corner */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
-                    
+
                     <p
                       className="text-3xl md:text-4xl lg:text-5xl font-arabic text-center leading-loose text-foreground relative z-10"
                       dir="rtl"

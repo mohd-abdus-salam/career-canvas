@@ -15,11 +15,11 @@ const Footer = () => {
                 <span className="text-primary-foreground font-display text-xl">☪</span>
               </div>
               <span className="text-xl font-display font-bold text-foreground">
-                NoorPath
+                The Ummah Lab
               </span>
             </Link>
             <p className="text-muted-foreground max-w-md leading-relaxed">
-              Your spiritual companion for Umrah, Hajj, and Quran guidance. 
+              Your spiritual companion for Umrah, Hajj, and Quran guidance.
               Illuminating the path to a deeper connection with faith.
             </p>
           </div>
@@ -93,7 +93,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} NoorPath. All rights reserved.
+            © {currentYear} The Ummah Lab. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">

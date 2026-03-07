@@ -6,8 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { auth, db } from "@/integrations/firebase/config";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  updateProfile
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { FcGoogle } from "react-icons/fc";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -20,14 +30,51 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
         navigate("/dashboard");
       }
-    };
-    checkSession();
+    });
+    return () => unsubscribe();
   }, [navigate]);
+
+  const createProfileInDb = async (userId: string, email: string, name: string) => {
+    const userRef = doc(db, "profiles", userId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        id: userId,
+        display_name: name,
+        email: email,
+        created_at: new Date().toISOString()
+      }, { merge: true });
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      await createProfileInDb(user.uid, user.email || "", user.displayName || "");
+
+      toast({
+        title: "As-salamu alaykum!",
+        description: "You have been signed in successfully with Google.",
+      });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred during Google sign in",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,33 +82,22 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: {
-              display_name: displayName,
-            },
-          },
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Update Firebase profile
+        await updateProfile(user, { displayName });
+
+        // Create Firestore profile
+        await createProfileInDb(user.uid, user.email || "", displayName);
+
+        toast({
+          title: "Welcome to The Ummah Lab!",
+          description: "Your account has been created successfully.",
         });
-
-        if (error) throw error;
-
-        if (data.user) {
-          toast({
-            title: "Welcome to NoorPath!",
-            description: "Your account has been created successfully.",
-          });
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
+        await signInWithEmailAndPassword(auth, email, password);
 
         toast({
           title: "As-salamu alaykum!",
@@ -95,7 +131,7 @@ const Auth = () => {
               </CardTitle>
               <CardDescription>
                 {isSignUp
-                  ? "Begin your spiritual journey with NoorPath"
+                  ? "Begin your spiritual journey with The Ummah Lab"
                   : "Continue your spiritual journey"}
               </CardDescription>
             </CardHeader>
@@ -148,10 +184,32 @@ const Auth = () => {
                   {loading
                     ? "Please wait..."
                     : isSignUp
-                    ? "Create Account"
-                    : "Sign In"}
+                      ? "Create Account"
+                      : "Sign In"}
                 </Button>
               </form>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+              >
+                <FcGoogle className="w-5 h-5" />
+                Google
+              </Button>
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
