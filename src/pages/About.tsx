@@ -56,11 +56,11 @@ const About = () => {
                     Acknowledgement of Translation
                   </h3>
                   <p className="text-lg text-muted-foreground leading-relaxed">
-                    The English translation of this booklet was completed with the sincere efforts of my father, 
-                    <span className="highlight-name"> M.A. Moiz</span>, and my uncle, 
-                    <span className="highlight-name"> M.A. Haq</span>, whose dedication and devotion made it possible 
-                    to present this work to a wider audience. Their contribution in translating and refining the 
-                    content is deeply appreciated and will always remain a source of pride for our family.
+                    This work was first published in Urdu by <span className="highlight-name">M.A. Shakoor</span> (1st edition). The English translation
+                    was later completed through the dedicated efforts of my father,
+                    <span className="highlight-name"> M.A. Moiz</span>, and my uncle,
+                    <span className="highlight-name"> M.A. Haq</span>. Their support in translating
+                    and refining the text helped bring this guide to readers around the world.
                   </p>
                 </div>
 
@@ -69,9 +69,9 @@ const About = () => {
                     Publication History
                   </h3>
                   <ul className="space-y-3 text-lg text-muted-foreground">
-                    <li><strong>1st Edition:</strong> 2000 – <span className="highlight-name">M.A. Shakoor</span></li>
-                    <li><strong>2nd Edition (Urdu/English):</strong> 2009 – Completed</li>
-                    <li><strong>3rd Edition (Urdu/English):</strong> 2013 – Near complete</li>
+                    <li><strong>1st Edition (Urdu):</strong> 2000 – <span className="highlight-name">M.A. Shakoor</span></li>
+                    <li><strong>2nd Edition (Urdu/English):</strong> 2009 – translation by M.A. Moiz and M.A. Haq</li>
+                    <li><strong>3rd Edition (Urdu/English):</strong> 2013 – near complete revisions</li>
                   </ul>
                 </div>
 

@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -19,3 +19,11 @@ export const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Enable offline persistence so Firestore works better when the client is offline.
+// If persistence fails (e.g., due to multiple tabs), we just log the warning.
+enableIndexedDbPersistence(db, { synchronizeTabs: true }).catch((err) => {
+  // Firestore persistence can fail if the browser is in private mode or if another tab
+  // is using persistence without synchronizeTabs enabled.
+  console.warn("Could not enable Firestore persistence:", err);
+});

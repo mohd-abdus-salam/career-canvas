@@ -1,5 +1,6 @@
 import { auth, db } from "@/integrations/firebase/config";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 interface SaveProgressParams {
     contentType: "quran" | "umrah" | "hajj";
@@ -8,15 +9,50 @@ interface SaveProgressParams {
     position?: string;
 }
 
+const waitForAuthUser = (timeoutMs = 5000): Promise<User | null> => {
+    return new Promise((resolve) => {
+        const current = auth.currentUser;
+        if (current) {
+            resolve(current);
+            return;
+        }
+
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+        const cleanup = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            unsubscribe();
+        };
+
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                cleanup();
+                resolve(user);
+            }
+        });
+
+        timeoutId = setTimeout(() => {
+            cleanup();
+            resolve(null);
+        }, timeoutMs);
+    });
+};
+
 export const saveReadingProgress = async ({
     contentType,
     sectionId,
     sectionTitle,
     position
 }: SaveProgressParams) => {
-    const user = auth.currentUser;
-
-    if (!user) return; // Only save progress if user is logged in
+    // Ensure we have an authenticated user before writing progress.
+    // Some components may trigger progress saves before auth state is fully initialized.
+    const user = await waitForAuthUser();
+    if (!user) {
+        // The user is not signed in or auth state could not be resolved in time.
+        return;
+    }
 
     const userId = user.uid;
 
