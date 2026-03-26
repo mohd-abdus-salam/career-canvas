@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Compass, Moon, Clock, ArrowRight } from "lucide-react";
 import { auth, db } from "@/integrations/firebase/config";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, doc, getDoc, getDocs, onSnapshot, orderBy, limit, FirestoreError, runTransaction } from "firebase/firestore";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { getChapters } from "@/lib/quran-api";
 
 interface ReadingProgress {
   content_type: string;
@@ -30,71 +32,314 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<any>(null);
   const [progress, setProgress] = useState<ReadingProgress[]>([]);
   const [history, setHistory] = useState<ReadingHistory[]>([]);
+  const [chapterVerseCounts, setChapterVerseCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [visitorStats, setVisitorStats] = useState({ today: 0, yesterday: 0, week: 0, lastWeek: 0 });
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    let unloadProgress: (() => void) | null = null;
+    let unloadHistory: (() => void) | null = null;
+    let loadingTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const getDayKey = (date: Date) => date.toISOString().slice(0, 10);
+    const getWeekKey = (date: Date) => {
+      const start = new Date(date);
+      const day = date.getDay() || 7; // Sunday=7
+      start.setDate(date.getDate() - day + 1);
+      return start.toISOString().slice(0, 10);
+    };
+
+    const markUserAsVisitor = (todayKey: string) => {
+      try {
+        const savedKey = localStorage.getItem("visitor_last_visit_day");
+        if (savedKey === todayKey) return false;
+        localStorage.setItem("visitor_last_visit_day", todayKey);
+        return true;
+      } catch {
+        return true;
+      }
+    };
+
+    const syncVisitorStats = async () => {
+      const visitorDoc = doc(db, "site_stats", "visitor_traffic");
+      const todayKey = getDayKey(new Date());
+      const weekKey = getWeekKey(new Date());
+      const incrementHit = markUserAsVisitor(todayKey);
+
+      try {
+        await runTransaction(db, async (tx) => {
+          const snapshot = await tx.get(visitorDoc);
+          let newStats = { today: 0, yesterday: 0, week: 0, lastWeek: 0 };
+
+          if (!snapshot.exists()) {
+            newStats.today = incrementHit ? 1 : 0;
+            newStats.yesterday = 0;
+            newStats.week = incrementHit ? 1 : 0;
+            newStats.lastWeek = 0;
+            tx.set(visitorDoc, {
+              ...newStats,
+              dayKey: todayKey,
+              weekKey: weekKey,
+            });
+          } else {
+            const data = snapshot.data();
+            let today = Number(data.today ?? 0);
+            let yesterday = Number(data.yesterday ?? 0);
+            let week = Number(data.week ?? 0);
+            let lastWeek = Number(data.lastWeek ?? 0);
+            const dataDayKey = String(data.dayKey ?? "");
+            const dataWeekKey = String(data.weekKey ?? "");
+
+            if (dataDayKey !== todayKey) {
+              yesterday = today;
+              today = 0;
+            }
+            if (dataWeekKey !== weekKey) {
+              lastWeek = week;
+              week = 0;
+            }
+
+            if (incrementHit) {
+              today += 1;
+              week += 1;
+            }
+
+            newStats = { today, yesterday, week, lastWeek };
+            tx.set(visitorDoc, {
+              ...newStats,
+              dayKey: todayKey,
+              weekKey: weekKey,
+            }, { merge: true });
+          }
+
+          if (!newStats.today && snapshot?.exists()) {
+            newStats = {
+              today: Number(snapshot.data()?.today ?? 0),
+              yesterday: Number(snapshot.data()?.yesterday ?? 0),
+              week: Number(snapshot.data()?.week ?? 0),
+              lastWeek: Number(snapshot.data()?.lastWeek ?? 0),
+            };
+          }
+
+          setVisitorStats(newStats);
+        });
+      } catch (err) {
+        console.warn("Failed to sync visitor stats", err);
+      }
+    };
+
+    syncVisitorStats();
+
+    const clearLoadingTimeout = () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
+    };
+
+    const isOfflineError = (err: unknown) => {
+      const code = (err as any)?.code;
+      const message = (err as any)?.message;
+      return (
+        code === "unavailable" ||
+        message?.toString().toLowerCase().includes("client is offline")
+      );
+    };
+
+    const handleError = (err: unknown) => {
+      console.error("Error fetching dashboard data:", err);
+      const message = (err as any)?.message ?? "Unable to load your progress right now.";
+
+      if (isOfflineError(err)) {
+        setError("You appear to be offline. Showing cached progress if available.");
+        toast({
+          title: "Offline",
+          description: "Unable to sync with the server. Showing cached progress if available.",
+          variant: "destructive",
+        });
+      } else {
+        setError(message);
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        });
+      }
+
+      setLoading(false);
+      clearLoadingTimeout();
+    };
+
+    const loadCachedData = async (currentUser: any) => {
+      try {
+        const progressQuery = query(
+          collection(db, "reading_progress"),
+          where("user_id", "==", currentUser.uid)
+        );
+        const historyQuery = query(
+          collection(db, "reading_history"),
+          where("user_id", "==", currentUser.uid)
+        );
+
+        const [progressSnapshot, historySnapshot] = await Promise.all([
+          getDocs(progressQuery, { source: "cache" }),
+          getDocs(historyQuery, { source: "cache" }),
+        ]);
+
+        const cachedProgress = progressSnapshot.docs
+          .map((doc) => doc.data() as ReadingProgress)
+          .sort((a, b) => new Date(b.last_read_at).getTime() - new Date(a.last_read_at).getTime());
+        setProgress(cachedProgress);
+
+        const cachedHistory = historySnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as ReadingHistory))
+          .filter((item) => item.content_type && item.section_id)
+          .sort((a, b) => new Date(b.visited_at).getTime() - new Date(a.visited_at).getTime());
+
+        const seen = new Set<string>();
+        const uniqueHistory: ReadingHistory[] = [];
+        for (const item of cachedHistory) {
+          const key = `${item.content_type}_${item.section_id}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueHistory.push(item);
+          }
+        }
+
+        setHistory(uniqueHistory.slice(0, 5));
+        setHistoryLoading(false);
+      } catch {
+        // Ignore cache errors; we’ll handle them via snapshot listener or toast.
+        setHistoryLoading(false);
+      }
+    };
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         navigate("/auth");
         return;
       }
+
       setUser(currentUser);
-      await fetchUserData(currentUser.uid);
+      setLoading(true);
+      setError(null);
+
+      // In case Firestore is slow, show the UI after this delay anyway
+      clearLoadingTimeout();
+      loadingTimeout = setTimeout(() => {
+        setLoading(false);
+      }, 1800);
+
+      try {
+        const profileRef = doc(db, "profiles", currentUser.uid);
+
+        // Try to load profile from cache first (useful when offline). If not available, fall back to server.
+        let profileSnap;
+        try {
+          profileSnap = await getDoc(profileRef, { source: "cache" });
+        } catch {
+          profileSnap = null;
+        }
+
+        if (!profileSnap || !profileSnap.exists()) {
+          try {
+            profileSnap = await getDoc(profileRef);
+          } catch {
+            profileSnap = null;
+          }
+        }
+
+        if (profileSnap?.exists()) {
+          setProfile(profileSnap.data());
+        }
+
+        // Load cached data immediately in case the client is offline
+        await loadCachedData(currentUser);
+
+        // Ensure UI renders ASAP even if Firestore is slow to respond
+        setLoading(false);
+
+        // Load Quran chapter metadata (needed for percent progress calculation)
+        try {
+          const chapters = await getChapters();
+          setChapterVerseCounts(
+            Object.fromEntries(chapters.map((chap) => [chap.id, chap.verses_count]))
+          );
+        } catch (err) {
+          console.warn("Failed to load Quran chapter metadata:", err);
+        }
+
+        // Fetch only latest progress/history to reduce load time
+        const progressQuery = query(
+          collection(db, "reading_progress"),
+          where("user_id", "==", currentUser.uid),
+          // keep latest progress first
+          // note: Firestore requires indexing for this combination if not already
+          orderBy("last_read_at", "desc"),
+          limit(3)
+        );
+
+        const historyQuery = query(
+          collection(db, "reading_history"),
+          where("user_id", "==", currentUser.uid),
+          orderBy("visited_at", "desc"),
+          limit(5)
+        );
+
+        unloadProgress = onSnapshot(
+          progressQuery,
+          (snapshot) => {
+            const progressData = snapshot.docs
+              .map((doc) => doc.data() as ReadingProgress)
+              .sort((a, b) => new Date(b.last_read_at).getTime() - new Date(a.last_read_at).getTime());
+            setProgress(progressData);
+            setLoading(false);
+          },
+          (err: FirestoreError) => handleError(err)
+        );
+
+        unloadHistory = onSnapshot(
+          historyQuery,
+          (snapshot) => {
+            const historyData = snapshot.docs
+              .map((doc) => ({ id: doc.id, ...doc.data() } as ReadingHistory))
+              .filter((item) => item.content_type && item.section_id)
+              .sort((a, b) => new Date(b.visited_at).getTime() - new Date(a.visited_at).getTime());
+
+            // Deduplicate by content_type + section_id, keeping latest visited at
+            const seen = new Set<string>();
+            const uniqueHistory: ReadingHistory[] = [];
+            for (const item of historyData) {
+              const key = `${item.content_type}_${item.section_id}`;
+              if (!seen.has(key)) {
+                seen.add(key);
+                uniqueHistory.push(item);
+              }
+            }
+
+            setHistory(uniqueHistory.slice(0, 5));
+            setHistoryLoading(false);
+            setLoading(false);
+          },
+          (err: FirestoreError) => handleError(err)
+        );
+      } catch (err) {
+        handleError(err);
+      }
     });
 
-    return () => unsubscribe();
-  }, [navigate]);
-
-  const fetchUserData = async (userId: string) => {
-    try {
-      const profileRef = doc(db, "profiles", userId);
-      const progressQuery = query(
-        collection(db, "reading_progress"),
-        where("user_id", "==", userId)
-      );
-      const historyQuery = query(
-        collection(db, "reading_history"),
-        where("user_id", "==", userId)
-      );
-
-      // Fetch all data concurrently
-      const [profileSnap, progressSnapshot, historySnapshot] = await Promise.all([
-        getDoc(profileRef),
-        getDocs(progressQuery),
-        getDocs(historyQuery)
-      ]);
-
-      if (profileSnap.exists()) {
-        setProfile(profileSnap.data());
-      }
-
-      const progressData = progressSnapshot.docs.map(doc => doc.data() as ReadingProgress);
-      progressData.sort((a, b) => new Date(b.last_read_at).getTime() - new Date(a.last_read_at).getTime());
-      setProgress(progressData);
-
-      const historyData = historySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ReadingHistory));
-      historyData.sort((a, b) => new Date(b.visited_at).getTime() - new Date(a.visited_at).getTime());
-
-      // Filter out duplicate history items for the same section to keep the list clean
-      const uniqueHistory = [];
-      const seenSections = new Set();
-      for (const item of historyData) {
-        const sectionKey = `${item.content_type}_${item.section_id}`;
-        if (!seenSections.has(sectionKey)) {
-          seenSections.add(sectionKey);
-          uniqueHistory.push(item);
-        }
-      }
-
-      setHistory(uniqueHistory.slice(0, 10));
-
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      unsubscribeAuth();
+      unloadProgress?.();
+      unloadHistory?.();
+      clearLoadingTimeout();
+    };
+  }, [navigate, toast, refreshKey]);
 
   const getContentIcon = (type: string) => {
     switch (type) {
@@ -109,17 +354,70 @@ const Dashboard = () => {
     }
   };
 
-  const getContentLink = (type: string, sectionId: string) => {
-    switch (type) {
-      case "quran":
-        return `/quran?surah=${sectionId}`;
+  const getProgressEntry = (item: ReadingHistory) => {
+    return progress.find((p) => p.content_type === item.content_type && p.section_id === item.section_id);
+  };
+
+  const getContentLink = (item: ReadingHistory) => {
+    const progressEntry = getProgressEntry(item);
+
+    switch (item.content_type) {
+      case "quran": {
+        const ayah = progressEntry?.position ? Number(progressEntry.position) : undefined;
+        return `/quran?surah=${item.section_id}${ayah ? `&ayah=${ayah}` : ""}`;
+      }
       case "umrah":
-        return `/umrah?chapter=${sectionId}`;
+        return `/umrah?chapter=${item.section_id}`;
       case "hajj":
-        return `/hajj?section=${sectionId}`;
+        return `/hajj?section=${item.section_id}`;
       default:
         return "/";
     }
+  };
+
+  const getLastReadingText = (item: ReadingHistory) => {
+    const progressEntry = getProgressEntry(item);
+    switch (item.content_type) {
+      case "quran": {
+        const ayah = progressEntry?.position ? Number(progressEntry.position) : null;
+        return `Surah ${item.section_id}${ayah ? `, Ayah ${ayah}` : ""}`;
+      }
+      case "umrah":
+        return `Chapter ${item.section_id}`;
+      case "hajj":
+        return `Section ${item.section_id}`;
+      default:
+        return item.section_title || item.section_id;
+    }
+  };
+
+  const getProgressPercent = (item: ReadingHistory) => {
+    if (!item.content_type) return null;
+
+    const progressEntry = progress.find((p) => p.content_type === item.content_type && p.section_id === item.section_id);
+
+    if (item.content_type === "quran") {
+      const versesCount = chapterVerseCounts[Number(item.section_id)];
+      const position = progressEntry?.position ? Number(progressEntry.position) : null;
+      if (!versesCount || !position) return null;
+      return Math.min(100, Math.round((position / versesCount) * 100));
+    }
+
+    if (item.content_type === "umrah") {
+      const total = 17; // total Umrah sections
+      const current = Number(progressEntry?.section_id ?? item.section_id);
+      if (!Number.isFinite(current) || total === 0) return null;
+      return Math.min(100, Math.round((current / total) * 100));
+    }
+
+    if (item.content_type === "hajj") {
+      const total = 19; // total Hajj sections
+      const current = Number(progressEntry?.section_id ?? item.section_id);
+      if (!Number.isFinite(current) || total === 0) return null;
+      return Math.min(100, Math.round((current / total) * 100));
+    }
+
+    return null;
   };
 
   const formatDate = (dateString: string) => {
@@ -218,55 +516,48 @@ const Dashboard = () => {
             </Link>
           </div>
 
-          {/* Reading History */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {history.length > 0 ? (
-                <div className="space-y-4">
-                  {history.map((item) => (
-                    <Link
-                      key={item.id}
-                      to={getContentLink(item.content_type, item.section_id)}
-                      className="flex items-center justify-between p-4 rounded-lg bg-accent/50 hover:bg-accent transition-colors group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          {getContentIcon(item.content_type)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground capitalize">
-                            {item.content_type}: {item.section_title || item.section_id}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatDate(item.visited_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </Link>
-                  ))}
+          {/* Visitor Traffic Summary */}
+          <div className="mb-12">
+            <div className="nav-card bg-[#0e1b3d] border-[#1f3a7d] shadow-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl md:text-2xl font-display font-bold text-[#e8f0ff]">Visitor Traffic</h2>
+                <p className="text-sm text-[#cbd5f8]">Last updated just now</p>
+              </div>
+
+              <div className="h-28 mb-4 bg-[#12214a] rounded-xl relative overflow-hidden">
+                <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_20%_25%,rgba(38,205,152,0.28),transparent 50%),radial-gradient(circle_at_70%_50%,rgba(34,211,238,0.22),transparent 55%)]" />
+                <svg viewBox="0 0 240 80" className="absolute inset-0 w-full h-full">
+                  <path d="M0,58 L34,48 L71,52 L108,42 L146,46 L182,36 L218,39 L240,34" fill="none" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" />
+                  <circle cx="0" cy="58" r="3" fill="#22d3ee" />
+                  <circle cx="34" cy="48" r="3" fill="#22d3ee" />
+                  <circle cx="71" cy="52" r="3" fill="#22d3ee" />
+                  <circle cx="108" cy="42" r="3" fill="#22d3ee" />
+                  <circle cx="146" cy="46" r="3" fill="#22d3ee" />
+                  <circle cx="182" cy="36" r="3" fill="#22d3ee" />
+                  <circle cx="218" cy="39" r="3" fill="#22d3ee" />
+                </svg>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="visitor-card">
+                  <p className="text-xs text-slate-400">Today</p>
+                  <p className="text-2xl font-bold text-primary">{visitorStats.today}</p>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    No reading history yet. Start your spiritual journey!
-                  </p>
-                  <Link to="/quran">
-                    <Button className="glow-hover">
-                      Start Reading
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
+                <div className="visitor-card">
+                  <p className="text-xs text-slate-400">Yesterday</p>
+                  <p className="text-2xl font-bold text-primary">{visitorStats.yesterday}</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="visitor-card">
+                  <p className="text-xs text-slate-400">This week</p>
+                  <p className="text-2xl font-bold text-primary">{visitorStats.week}</p>
+                </div>
+                <div className="visitor-card">
+                  <p className="text-xs text-slate-400">Last week</p>
+                  <p className="text-2xl font-bold text-primary">{visitorStats.lastWeek}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </main>
       <Footer />
